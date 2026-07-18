@@ -1,0 +1,7 @@
+# 本物のOpenRouteService APIキーを含む設定ファイル
+js/config.js
+
+# OSが自動生成する不要ファイル
+.DS_Store
+Thumbs.db
+Desktop.ini
