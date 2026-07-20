@@ -21,7 +21,6 @@
 
       <div class="primary-actions" aria-label="主な操作">
         <button id="current-location-button" type="button">現在地を表示</button>
-        <button id="registration-start-button" type="button">スポット登録を開始</button>
       </div>
     </header>
 
@@ -39,12 +38,23 @@
             placeholder="例：○○公園"
           >
 
+          <label for="spot-type" style="margin-top: 1rem;">タイプ</label>
+          <select
+            id="spot-type"
+            name="spot-type"
+          >
+            <option value="entry">入口 (Entry)</option>
+            <option value="way">経由地 (Way)</option>
+            <option value="exit">出口 (Exit)</option>
+          </select>
+
           <div
             id="registration-actions"
             class="registration-actions"
             aria-label="登録操作"
           >
-            <!-- 担当Bが登録操作用のボタンを追加します。 -->
+            <button id="spot-save-button" type="button" class="btn-primary" disabled>保存</button>
+            <button id="spot-cancel-button" type="button" class="btn-secondary">クリア</button>
           </div>
         </section>
 
@@ -53,6 +63,20 @@
           <div id="saved-spots-list">
             <p class="placeholder-text">一覧表示は未実装です。</p>
           </div>
+        </section>
+
+        <section class="panel settings-panel" aria-labelledby="settings-heading">
+          <h2 id="settings-heading">設定</h2>
+          <label for="api-key">OpenRouteService APIキー</label>
+          <input
+            id="api-key"
+            name="api-key"
+            type="password"
+            placeholder="APIキーを入力..."
+          >
+          <p class="placeholder-text" style="font-size: 0.75rem; margin-top: 0.4rem; line-height: 1.4;">
+            徒歩ルート検索に使用します。キーはブラウザに安全に保存されます。
+          </p>
         </section>
       </aside>
 
