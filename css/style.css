@@ -191,3 +191,79 @@ input {
     margin-left: 1rem;
   }
 }
+
+/* 担当B：追加のスタイル定義 */
+select {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #aab8b1;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  min-height: 44px;
+  font: inherit;
+}
+
+select:disabled,
+input:disabled {
+  background: #e9ecea;
+  color: #8fa399;
+  cursor: not-allowed;
+  border-color: #d3ddd7;
+}
+
+.registration-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  align-items: center;
+  justify-content: stretch;
+}
+
+.registration-actions button {
+  flex: 1;
+}
+
+.btn-secondary {
+  background: #e5ece8;
+  color: #24332d;
+  border: 1px solid #aab8b1;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #d3ddd7;
+}
+
+button:disabled {
+  background: #d3ddd7;
+  color: #8fa399;
+  cursor: not-allowed;
+  border-color: #d3ddd7;
+}
+
+/* 担当B：スポットリスト周りのデザイン向上 */
+.spot-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.spot-item {
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.spot-item:hover {
+  background: #f2f6f3 !important;
+  border-left-color: #aab8b1;
+}
+
+.spot-item.active {
+  background: #e5ece8 !important;
+  border-left-color: #26734d;
+}
+
+.spot-item.active .spot-name-text {
+  color: #174b35;
+}
+
+
