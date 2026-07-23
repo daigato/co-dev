@@ -42,6 +42,18 @@ RouteKeeper.map = (function () {
     spotNodeLayer = L.layerGroup().addTo(map);
     map.on("click", handleMapClick);
 
+    setTimeout(function () {
+      if (map) {
+        map.invalidateSize();
+      }
+    }, 100);
+
+    window.addEventListener("resize", function () {
+      if (map) {
+        map.invalidateSize();
+      }
+    });
+
     var currentLocationButton = document.getElementById("current-location-button");
     if (currentLocationButton) {
       currentLocationButton.addEventListener("click", function () {
