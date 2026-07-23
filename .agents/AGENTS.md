@@ -1,7 +1,4 @@
 # プロジェクトルール
 
-ユーザーから「pushして」「プッシュして」「コミットして」等の指示を受けた場合は、変更内容（git diffやgit status）を確認して分かりやすいコミットメッセージを自動生成し、以下の順でコマンドを実行してください。
+ユーザーから「pushして」「プッシュして」「コミットして」「変更を反映して」「Gitに上げて」等のGit同期・コミットの指示を受けた場合は、`.agents/skills/git-push/SKILL.md` のスキルに従って、コミットメッセージの自動生成および git add, git commit, git push origin main を実行してください。
 
-1. git add .
-2. git commit -m "変更内容のわかりやすい説明"
-3. git push origin main
