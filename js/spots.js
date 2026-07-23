@@ -141,9 +141,8 @@ RouteKeeper.spots.selectSpot = function (id) {
   
   const selectedSpot = RouteKeeper.state.spots.find(s => s.id === id);
   if (selectedSpot) {
-    const statusMsg = document.getElementById("status-message");
-    if (statusMsg) {
-      statusMsg.textContent = "スポット「" + selectedSpot.name + "」が選択されました。";
+    if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
+      RouteKeeper.map.setStatus("スポット「" + selectedSpot.name + "」を選択しました。", "info");
     }
   }
 };
@@ -166,9 +165,8 @@ RouteKeeper.spots.deleteSpot = function (id) {
   // マーカー削除等のため、地図担当へ通知するカスタムイベントを発行
   document.dispatchEvent(new CustomEvent("spotsUpdated"));
 
-  const statusMsg = document.getElementById("status-message");
-  if (statusMsg) {
-    statusMsg.textContent = "スポットを削除しました。";
+  if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
+    RouteKeeper.map.setStatus("スポットを削除しました。", "success");
   }
 };
 
@@ -179,13 +177,12 @@ RouteKeeper.spots.startRegistration = function () {
   RouteKeeper.state.mode = "register";
 
   const saveBtn = document.getElementById("spot-save-button");
-  const statusMsg = document.getElementById("status-message");
 
   if (saveBtn && !RouteKeeper.state.draftSpot) {
     saveBtn.disabled = true; // 位置が指定されるまで保存不可
   }
-  if (statusMsg) {
-    statusMsg.textContent = "登録モード：地図上をクリックしてスポットの場所を指定してください。";
+  if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
+    RouteKeeper.map.setStatus("登録モード：地図上をクリックしてスポットの場所を指定してください。", "info");
   }
 };
 
@@ -200,7 +197,6 @@ RouteKeeper.spots.cancelRegistration = function () {
   const nameInput = document.getElementById("spot-name");
   const typeSelect = document.getElementById("spot-type");
   const saveBtn = document.getElementById("spot-save-button");
-  const statusMsg = document.getElementById("status-message");
 
   if (nameInput) {
     nameInput.value = "";
@@ -211,8 +207,8 @@ RouteKeeper.spots.cancelRegistration = function () {
   if (saveBtn) {
     saveBtn.disabled = true;
   }
-  if (statusMsg) {
-    statusMsg.textContent = "入力をクリアしました。";
+  if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
+    RouteKeeper.map.setStatus("入力をクリアしました。", "info");
   }
   
   // 地図上にドラフト表示されているマーカーがあれば消去させるため、イベントを発行
@@ -240,9 +236,11 @@ RouteKeeper.spots.handleMapClick = function (latlng) {
     saveBtn.disabled = false;
   }
 
-  const statusMsg = document.getElementById("status-message");
-  if (statusMsg) {
-    statusMsg.textContent = "位置が指定されました。スポット名を入力して「保存」を押してください。(" + latlng.lat.toFixed(5) + ", " + latlng.lng.toFixed(5) + ")";
+  if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
+    RouteKeeper.map.setStatus(
+      "位置が指定されました(" + latlng.lat.toFixed(4) + ", " + latlng.lng.toFixed(4) + ")。スポット名を入力して「保存」を押してください。",
+      "info"
+    );
   }
 
   // 地図上にドラフトピンを立てるため、イベントを発行
@@ -289,9 +287,8 @@ RouteKeeper.spots.saveDraftSpot = function () {
   // マーカー更新のため地図担当へ通知
   document.dispatchEvent(new CustomEvent("spotsUpdated"));
 
-  const statusMsg = document.getElementById("status-message");
-  if (statusMsg) {
-    statusMsg.textContent = "スポット「" + name + "」を保存しました。";
+  if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
+    RouteKeeper.map.setStatus("スポット「" + name + "」を保存しました。", "success");
   }
 };
 
@@ -344,14 +341,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 担当Bデバッグ用：地図が未実装の間、#map領域をクリックすることで位置登録をシミュレートします
-  const mapElement = document.getElementById("map");
-  if (mapElement) {
-    mapElement.style.cursor = "pointer"; // クリック可能であることを示す
-    mapElement.addEventListener("click", function () {
-      // 地図クリックで自動的に登録モードに入る
-      RouteKeeper.spots.handleMapClick({ lat: 35.68123, lng: 139.76712 });
-    });
-  }
 });
+
 

@@ -266,4 +266,153 @@ button:disabled {
   color: #174b35;
 }
 
+/* --- レスポンシブ・サイドバー開閉対応 --- */
+.sidebar {
+  transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+
+.sidebar.collapsed {
+  display: none !important;
+}
+
+.sidebar.collapsed ~ .map-column {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    order: 2;
+  }
+  .map-column {
+    order: 1;
+  }
+}
+
+/* --- エラー・通知スタイルの強化 --- */
+.status-message {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  font-weight: 500;
+}
+
+.status-message.error {
+  background-color: #fde8e8;
+  border-color: #f8b4b4;
+  color: #9b1c1c;
+}
+
+.status-message.warning {
+  background-color: #feecdc;
+  border-color: #fbd5a5;
+  color: #9a3412;
+}
+
+.status-message.success {
+  background-color: #def7ec;
+  border-color: #84e1bc;
+  color: #03543f;
+}
+
+/* --- Leaflet カスタムピンマーカー --- */
+.custom-spot-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.custom-spot-pin span {
+  transform: rotate(45deg);
+  display: block;
+}
+
+.spot-pin-entry {
+  background-color: #2e6f40; /* 入口: 緑 */
+}
+
+.spot-pin-way {
+  background-color: #e08b1b; /* 経由地: オレンジ */
+}
+
+.spot-pin-exit {
+  background-color: #bd3a28; /* 出口: 赤 */
+}
+
+.spot-pin-draft {
+  background-color: #2563eb; /* ドラフト: 青 */
+  animation: pulse-draft 1.5s infinite;
+}
+
+@keyframes pulse-draft {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+/* --- ポップアップ スタイル --- */
+.spot-popup {
+  padding: 0.2rem;
+  min-width: 160px;
+}
+
+.spot-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.spot-popup-title {
+  font-size: 0.95rem;
+  color: #174b35;
+}
+
+.spot-popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.spot-popup-btn {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  min-height: auto;
+  text-align: center;
+  width: 100%;
+}
+
+.spot-popup-btn-route {
+  background: #1769d2;
+}
+
+.spot-popup-btn-route:hover {
+  background: #114fb0;
+}
+
+.spot-popup-btn-delete {
+  background: #bd3a28;
+}
+
+.spot-popup-btn-delete:hover {
+  background: #962c1e;
+}
+
+
 

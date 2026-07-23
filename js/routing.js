@@ -10,7 +10,11 @@ RouteKeeper.routing = (function () {
   var API_URL =
     "https://api.openrouteservice.org/v2/directions/foot-walking/geojson";
 
-  function setStatus(message) {
+  function setStatus(message, type) {
+    if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
+      RouteKeeper.map.setStatus(message, type);
+      return;
+    }
     var status = document.getElementById("status-message");
     if (status) {
       status.textContent = message;
@@ -52,20 +56,20 @@ RouteKeeper.routing = (function () {
   async function searchWalkingRoute(destination) {
     var map = RouteKeeper.map && RouteKeeper.map.getMap();
     if (!map) {
-      setStatus("地図の初期化が完了していません。");
+      setStatus("地図の初期化が完了していません。", "error");
       return;
     }
 
     var destinationLatLng = normalizeLatLng(destination);
     if (!destinationLatLng) {
-      setStatus("目的地の座標が正しくありません。");
+      setStatus("目的地の座標が正しくありません。", "error");
       return;
     }
 
     var apiKey =
       window.ROUTEKEEPER_CONFIG && window.ROUTEKEEPER_CONFIG.ORS_API_KEY;
     if (!apiKey || apiKey === "YOUR_API_KEY") {
-      setStatus("OpenRouteServiceのAPIキーを js/config.js に設定してください。");
+      setStatus("警告：ルート検索を行うには、設定パネルにOpenRouteService APIキーを入力してください。", "warning");
       showDestination(destinationLatLng);
       return;
     }
@@ -75,6 +79,7 @@ RouteKeeper.routing = (function () {
       try {
         currentPosition = await RouteKeeper.map.getCurrentPosition({ moveMap: false });
       } catch (error) {
+        setStatus("現在地が取得できないためルート検索を実行できません。位置情報の許可設定を確認してください。", "error");
         return;
       }
     }
@@ -83,7 +88,7 @@ RouteKeeper.routing = (function () {
     var requestController = new AbortController();
     activeRequest = requestController;
     showDestination(destinationLatLng);
-    setStatus("徒歩ルートを検索しています…");
+    setStatus("徒歩ルートを検索しています…", "info");
 
     try {
       var response = await fetch(API_URL, {
@@ -103,13 +108,21 @@ RouteKeeper.routing = (function () {
       });
 
       if (!response.ok) {
-        throw new Error("OpenRouteService error: " + response.status);
+        if (response.status === 401 || response.status === 403) {
+          throw new Error("API_KEY_INVALID");
+        } else if (response.status === 404) {
+          throw new Error("ROUTE_NOT_FOUND");
+        } else if (response.status === 429) {
+          throw new Error("RATE_LIMIT_EXCEEDED");
+        } else {
+          throw new Error("API_ERROR_" + response.status);
+        }
       }
 
       var geojson = await response.json();
       var feature = geojson.features && geojson.features[0];
       if (!feature || !feature.geometry) {
-        throw new Error("ルートが見つかりませんでした。");
+        throw new Error("ROUTE_NOT_FOUND");
       }
 
       routeLayer = L.geoJSON(feature, {
@@ -123,14 +136,23 @@ RouteKeeper.routing = (function () {
 
       var summary = feature.properties && feature.properties.summary;
       updateRouteInfo(summary && summary.distance, summary && summary.duration);
-      setStatus("徒歩ルートを表示しました。");
+      setStatus("徒歩ルートを表示しました。", "success");
     } catch (error) {
       if (error.name === "AbortError") {
         return;
       }
       console.error("徒歩ルートの検索に失敗しました。", error);
       updateRouteInfo(null, null);
-      setStatus("徒歩ルートを取得できませんでした。APIキーや通信環境を確認してください。");
+
+      if (error.message === "API_KEY_INVALID") {
+        setStatus("エラー：OpenRouteService APIキーが無効か、利用資格がありません。設定のAPIキーを確認してください。", "error");
+      } else if (error.message === "ROUTE_NOT_FOUND") {
+        setStatus("警告：現在地から指定地点への徒歩ルートが見つかりませんでした。", "warning");
+      } else if (error.message === "RATE_LIMIT_EXCEEDED") {
+        setStatus("警告：APIの利用制限を超過しました。しばらく経ってから再試行してください。", "warning");
+      } else {
+        setStatus("エラー：徒歩ルートを取得できませんでした。APIキーや通信環境を確認してください。", "error");
+      }
     } finally {
       if (activeRequest === requestController) {
         activeRequest = null;
