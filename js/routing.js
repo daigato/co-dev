@@ -66,8 +66,10 @@ RouteKeeper.routing = (function () {
       return;
     }
 
-    var apiKey =
-      window.ROUTEKEEPER_CONFIG && window.ROUTEKEEPER_CONFIG.ORS_API_KEY;
+    var apiKey = typeof RouteKeeper.getEffectiveApiKey === "function"
+      ? RouteKeeper.getEffectiveApiKey()
+      : (window.ROUTEKEEPER_CONFIG && window.ROUTEKEEPER_CONFIG.ORS_API_KEY);
+
     if (!apiKey || apiKey === "YOUR_API_KEY") {
       setStatus("警告：ルート検索を行うには、設定パネルにOpenRouteService APIキーを入力してください。", "warning");
       showDestination(destinationLatLng);
@@ -76,12 +78,9 @@ RouteKeeper.routing = (function () {
 
     var currentPosition = RouteKeeper.state.currentPosition;
     if (!currentPosition) {
-      try {
-        currentPosition = await RouteKeeper.map.getCurrentPosition({ moveMap: false });
-      } catch (error) {
-        setStatus("現在地が取得できないためルート検索を実行できません。位置情報の許可設定を確認してください。", "error");
-        return;
-      }
+      setStatus("ルート検索を行うには、先に「現在地を表示」ボタンを押して現在地を取得してください。", "warning");
+      showDestination(destinationLatLng);
+      return;
     }
 
     clearRoute();
@@ -132,7 +131,7 @@ RouteKeeper.routing = (function () {
           opacity: 0.85
         }
       }).addTo(map);
-      map.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+      map.fitBounds(routeLayer.getBounds(), { padding: [40, 40], maxZoom: 16 });
 
       var summary = feature.properties && feature.properties.summary;
       updateRouteInfo(summary && summary.distance, summary && summary.duration);

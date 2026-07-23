@@ -60,7 +60,10 @@
         </section>
 
         <section class="panel saved-spots-panel" aria-labelledby="saved-spots-heading">
-          <h2 id="saved-spots-heading">保存済みスポット</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h2 id="saved-spots-heading" style="margin: 0;">保存済みスポット</h2>
+            <button id="clear-all-spots-button" type="button" class="btn-secondary" style="font-size: 0.75rem; padding: 2px 8px; min-height: auto;">全クリア</button>
+          </div>
           <div id="saved-spots-list">
             <p class="placeholder-text">一覧表示は未実装です。</p>
           </div>
@@ -104,6 +107,7 @@
       crossorigin=""
     ></script>
     <script src="js/config.example.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/state.js"></script>
     <script src="js/map.js"></script>
     <script src="js/routing.js"></script>

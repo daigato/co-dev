@@ -10,9 +10,12 @@ RouteKeeper.map = (function () {
   var spotsLayer = null;
   var draftMarker = null;
   var spotMarkersMap = {}; // spot id -> L.Marker
+  var userInteractedAfterGeoRequest = false; // geolocation要求後のユーザー操作フラグ
+  var mapWasDragged = false; // ドラッグ直後の誤click発火防止フラグ
+  var dragEndTime = 0;       // ドラッグ終了時刻
 
-  var DEFAULT_CENTER = [35.681236, 139.767125];
-  var DEFAULT_ZOOM = 13;
+  var DEFAULT_CENTER = [36.2048, 138.2529]; // 日本全体を中心
+  var DEFAULT_ZOOM = 6;
 
   var TYPE_LABELS = {
     entry: "入口",
@@ -58,6 +61,13 @@ RouteKeeper.map = (function () {
 
     spotNodeLayer = L.layerGroup().addTo(map);
     spotsLayer = L.layerGroup().addTo(map);
+
+    map.on("dragstart", function () {
+      mapWasDragged = true;
+    });
+    map.on("dragend", function () {
+      dragEndTime = Date.now();
+    });
 
     map.on("click", handleMapClick);
 
@@ -111,11 +121,24 @@ RouteKeeper.map = (function () {
     var currentLocationButton = document.getElementById("current-location-button");
     if (currentLocationButton) {
       currentLocationButton.addEventListener("click", function () {
+        // geolocation要求前に操作フラグをリセット
+        userInteractedAfterGeoRequest = false;
         getCurrentPosition({ moveMap: true }).catch(function () {
           // エラーメッセージは getCurrentPosition 内で表示
         });
       });
     }
+
+    // 地図操作（クリック・ドラッグ・ズーム）でフラグをセット
+    map.on("mousedown", function () {
+      userInteractedAfterGeoRequest = true;
+    });
+    map.on("dragstart", function () {
+      userInteractedAfterGeoRequest = true;
+    });
+    map.on("zoomstart", function () {
+      userInteractedAfterGeoRequest = true;
+    });
 
     // 保存済みスポットの初回レンダリング
     renderSpotMarkers();
@@ -227,8 +250,7 @@ RouteKeeper.map = (function () {
   function focusSpotMarker(id) {
     var marker = spotMarkersMap[id];
     if (marker && map) {
-      var latlng = marker.getLatLng();
-      map.setView(latlng, Math.max(map.getZoom(), 15));
+      // setView は呼ばない（リスト選択で地図が強制移動しないように）
       marker.openPopup();
     }
   }
@@ -244,19 +266,12 @@ RouteKeeper.map = (function () {
   }
 
   function handleMapClick(event) {
-    if (
-      RouteKeeper.state.mode === "register" || RouteKeeper.state.mode === "registration" ||
-      (RouteKeeper.spots && typeof RouteKeeper.spots.handleMapClick === "function")
-    ) {
-      RouteKeeper.spots.handleMapClick(event.latlng);
+    // ドラッグ終了後300ms以内のclickは誤発火として無視
+    if (Date.now() - dragEndTime < 300) {
       return;
     }
-
-    if (
-      RouteKeeper.routing &&
-      typeof RouteKeeper.routing.searchWalkingRoute === "function"
-    ) {
-      RouteKeeper.routing.searchWalkingRoute(event.latlng);
+    if (RouteKeeper.spots && typeof RouteKeeper.spots.handleMapClick === "function") {
+      RouteKeeper.spots.handleMapClick(event.latlng);
     }
   }
 
@@ -284,10 +299,14 @@ RouteKeeper.map = (function () {
 
           RouteKeeper.state.currentPosition = latlng;
           showCurrentPosition(latlng);
-          if (settings.moveMap !== false) {
+
+          // カメラ移動：ユーザーが現在地ボタン押下後に地図を触っていない場合のみ移動
+          if (settings.moveMap !== false && map && !userInteractedAfterGeoRequest) {
             map.setView([latlng.lat, latlng.lng], 16);
+            setStatus("現在地を表示しました。ピンをドラッグして現在地を変更できます。", "success");
+          } else {
+            setStatus("現在地を取得しました。現在地ピンをドラッグして位置を調整できます。", "info");
           }
-          setStatus("現在地を表示しました。", "success");
           resolve(latlng);
         },
         function (error) {
@@ -318,15 +337,22 @@ RouteKeeper.map = (function () {
       return;
     }
 
-    currentPositionMarker = L.circleMarker(latlng, {
-      radius: 8,
-      color: "#ffffff",
-      weight: 3,
-      fillColor: "#2878d0",
-      fillOpacity: 1
-    })
-      .bindPopup("現在地")
+    var icon = L.divIcon({
+      className: "custom-current-location-marker",
+      html: '<div style="background:#2878d0; width:16px; height:16px; border-radius:50%; border:3px solid #ffffff; box-shadow:0 2px 6px rgba(0,0,0,0.3); cursor:move;"></div>',
+      iconSize: [22, 22],
+      iconAnchor: [11, 11]
+    });
+
+    currentPositionMarker = L.marker(latlng, { icon: icon, draggable: true })
+      .bindPopup("現在地（ドラッグで移動可能）")
       .addTo(map);
+
+    currentPositionMarker.on("dragend", function (event) {
+      var newPos = event.target.getLatLng();
+      RouteKeeper.state.currentPosition = { lat: newPos.lat, lng: newPos.lng };
+      setStatus("現在地の位置を手動で変更しました。(" + newPos.lat.toFixed(4) + ", " + newPos.lng.toFixed(4) + ")", "info");
+    });
   }
 
   function showSpotNodes(spot) {

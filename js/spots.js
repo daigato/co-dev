@@ -305,6 +305,21 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  const clearAllBtn = document.getElementById("clear-all-spots-button");
+
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener("click", function () {
+      RouteKeeper.storage.clearSpots();
+      RouteKeeper.state.selectedSpotId = null;
+      RouteKeeper.state.spots = [];
+      RouteKeeper.spots.renderSpotList([]);
+      document.dispatchEvent(new CustomEvent("spotsUpdated"));
+      if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
+        RouteKeeper.map.setStatus("すべてのスポットを削除しました。", "success");
+      }
+    });
+  }
+
   if (saveBtn) {
     saveBtn.addEventListener("click", function () {
       RouteKeeper.spots.saveDraftSpot();
@@ -328,19 +343,36 @@ document.addEventListener("DOMContentLoaded", function () {
   // APIキーの初期ロードとイベント登録
   if (apiKeyInput) {
     const savedKey = RouteKeeper.storage.loadApiKey();
-    apiKeyInput.value = savedKey;
-    
-    // グローバルオブジェクトに即時適用
-    window.ROUTEKEEPER_CONFIG = window.ROUTEKEEPER_CONFIG || {};
-    window.ROUTEKEEPER_CONFIG.ORS_API_KEY = savedKey;
+    // 保存されたキーがあればそれを表示、なければ ****** を初期表示
+    apiKeyInput.value = savedKey ? savedKey : "******";
+
+    // 実際に利用する有効なAPIキーを判定する関数を定義
+    RouteKeeper.getEffectiveApiKey = function () {
+      const currentVal = apiKeyInput.value.trim();
+      if (currentVal && currentVal !== "******") {
+        return currentVal;
+      }
+      const saved = RouteKeeper.storage.loadApiKey();
+      if (saved && saved !== "******") {
+        return saved;
+      }
+      return (window.ROUTEKEEPER_CONFIG && window.ROUTEKEEPER_CONFIG.ORS_API_KEY) || "";
+    };
 
     apiKeyInput.addEventListener("input", function () {
       const key = apiKeyInput.value.trim();
-      RouteKeeper.storage.saveApiKey(key);
-      window.ROUTEKEEPER_CONFIG.ORS_API_KEY = key;
+      if (key !== "******") {
+        RouteKeeper.storage.saveApiKey(key);
+      }
+    });
+
+    apiKeyInput.addEventListener("focus", function () {
+      if (apiKeyInput.value === "******") {
+        // フォーカス時に伏字の場合、一時的にクリアして入力しやすくする
+        // apiKeyInput.value = "";
+      }
     });
   }
-
 });
 
 
