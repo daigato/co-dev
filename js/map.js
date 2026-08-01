@@ -185,13 +185,17 @@ RouteKeeper.map = (function () {
       var typeLabel = TYPE_LABELS[spot.type] || spot.type;
       var popupContent = document.createElement("div");
       popupContent.className = "spot-popup";
+      var waypointButtonHtml = spot.type === "way"
+        ? '<button type="button" class="spot-popup-btn spot-popup-btn-waypoint">この地点を経由地に追加</button>'
+        : '';
       popupContent.innerHTML = 
         '<div class="spot-popup-header">' +
           '<strong class="spot-popup-title">' + escapeHtml(spot.name) + '</strong>' +
           '<span class="spot-type-badge ' + escapeHtml(spot.type) + '" style="font-size:0.7rem; padding:2px 6px; border-radius:4px; color:#fff; background:' + (spot.type==='entry'?'#2e6f40':spot.type==='way'?'#e08b1b':'#bd3a28') + ';">' + escapeHtml(typeLabel) + '</span>' +
         '</div>' +
         '<div class="spot-popup-actions">' +
-          '<button type="button" class="spot-popup-btn spot-popup-btn-route">ここへ徒歩ルートを検索</button>' +
+          '<button type="button" class="spot-popup-btn spot-popup-btn-route">ここを目的地にする</button>' +
+          waypointButtonHtml +
           '<button type="button" class="spot-popup-btn spot-popup-btn-delete">このスポットを削除</button>' +
         '</div>';
 
@@ -201,6 +205,20 @@ RouteKeeper.map = (function () {
         routeBtn.addEventListener("click", function () {
           if (RouteKeeper.routing && typeof RouteKeeper.routing.searchWalkingRoute === "function") {
             RouteKeeper.routing.searchWalkingRoute({ lat: spot.lat, lng: spot.lng });
+          }
+        });
+      }
+
+      var waypointBtn = popupContent.querySelector(".spot-popup-btn-waypoint");
+      if (waypointBtn) {
+        waypointBtn.addEventListener("click", function () {
+          if (RouteKeeper.routing && typeof RouteKeeper.routing.addWaypoint === "function") {
+            RouteKeeper.routing.addWaypoint({
+              id: spot.id,
+              label: spot.name,
+              lat: spot.lat,
+              lng: spot.lng
+            });
           }
         });
       }
@@ -234,8 +252,28 @@ RouteKeeper.map = (function () {
     clearDraftMarker();
 
     var icon = createCustomIcon("draft", true);
+    var popupContent = document.createElement("div");
+    popupContent.className = "spot-popup";
+    popupContent.innerHTML =
+      '<strong class="spot-popup-title">選択した地点</strong>' +
+      '<div class="spot-popup-actions">' +
+        '<button type="button" class="spot-popup-btn spot-popup-btn-route">ここを目的地にする</button>' +
+      '</div>';
+
+    var routeButton = popupContent.querySelector(".spot-popup-btn-route");
+    if (routeButton) {
+      routeButton.addEventListener("click", function () {
+        if (RouteKeeper.spots && typeof RouteKeeper.spots.cancelRegistration === "function") {
+          RouteKeeper.spots.cancelRegistration();
+        }
+        if (RouteKeeper.routing && typeof RouteKeeper.routing.searchWalkingRoute === "function") {
+          RouteKeeper.routing.searchWalkingRoute({ lat: latlng.lat, lng: latlng.lng });
+        }
+      });
+    }
+
     draftMarker = L.marker([latlng.lat, latlng.lng], { icon: icon })
-      .bindPopup("新規登録位置")
+      .bindPopup(popupContent)
       .addTo(map);
     draftMarker.openPopup();
   }

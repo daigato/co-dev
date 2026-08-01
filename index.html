@@ -69,25 +69,50 @@
           </div>
         </section>
 
-        <section class="panel settings-panel" aria-labelledby="settings-heading">
-          <h2 id="settings-heading">設定</h2>
-          <label for="api-key">OpenRouteService APIキー</label>
+        <section class="panel building-panel" aria-labelledby="building-heading">
+          <h2 id="building-heading">建物内の通り抜け登録</h2>
+          <p class="form-help">入口・出口を先にスポット登録し、同じ建物のペアと通過時間を設定します。</p>
+
+          <label for="building-name">建物名</label>
           <input
-            id="api-key"
-            name="api-key"
-            type="password"
-            placeholder="APIキーを入力..."
+            id="building-name"
+            name="building-name"
+            type="text"
+            list="building-name-options"
+            autocomplete="off"
+            placeholder="例：○○駅"
           >
-          <p class="placeholder-text" style="font-size: 0.75rem; margin-top: 0.4rem; line-height: 1.4;">
-            徒歩ルート検索に使用します。キーはブラウザに安全に保存されます。
-          </p>
+          <datalist id="building-name-options"></datalist>
+
+          <label for="building-entry">入口</label>
+          <select id="building-entry" name="building-entry"></select>
+
+          <label for="building-exit">出口</label>
+          <select id="building-exit" name="building-exit"></select>
+
+          <label for="building-duration">建物内の徒歩時間（分）</label>
+          <input
+            id="building-duration"
+            name="building-duration"
+            type="number"
+            min="0.1"
+            step="0.1"
+            inputmode="decimal"
+            placeholder="例：3"
+          >
+
+          <button id="building-pair-save-button" type="button" class="btn-primary building-save-button">ペアを登録</button>
+          <div id="building-groups-list" class="building-groups-list"></div>
         </section>
+
       </aside>
 
       <section class="map-column" aria-label="地図とルート情報">
         <div id="route-info" class="route-info" aria-live="polite">
           <span>距離：<strong id="route-distance">--</strong></span>
           <span>所要時間：<strong id="route-duration">--</strong></span>
+          <span>経路：<strong id="route-mode">--</strong></span>
+          <button id="route-clear-button" type="button" class="btn-route-clear" disabled>経路表示を終了</button>
         </div>
 
         <div id="map" aria-label="地図表示領域">
@@ -106,13 +131,13 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="js/config.example.js"></script>
     <script src="js/config.js"></script>
     <script src="js/state.js"></script>
     <script src="js/map.js"></script>
     <script src="js/routing.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/spots.js"></script>
+    <script src="js/buildings.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

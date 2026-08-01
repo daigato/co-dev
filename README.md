@@ -2,7 +2,7 @@
 
 RouteKeeper（仮）は、公園・施設・大学構内などの入口、経由地、出口を確認するためのマップWebアプリです。
 
-現在は、2人で機能開発を始めるための**共通の土台だけ**を用意した段階です。地図表示、現在地取得、ルート検索、スポット登録、保存などの機能は、まだ実装されていません。
+地図表示、現在地取得、スポット登録、建物内の入口・出口ペア登録、徒歩ルート比較を実装しています。
 
 ## 使用技術
 
@@ -25,12 +25,13 @@ routekeeper/
 ├─ css/
 │  └─ style.css
 ├─ js/
-│  ├─ config.example.js
+│  ├─ config.js
 │  ├─ state.js
 │  ├─ map.js
 │  ├─ routing.js
 │  ├─ storage.js
 │  ├─ spots.js
+│  ├─ buildings.js
 │  └─ app.js
 ├─ .gitignore
 └─ README.md
@@ -48,9 +49,10 @@ routekeeper/
   - 保存済みスポットの地点表示
 - `js/routing.js`
   - OpenRouteServiceへの問い合わせ
+  - 通常ルートと建物経由ルートの所要時間比較
   - 徒歩ルート、距離、所要時間の表示
-- `js/config.example.js`
-  - APIキー設定例の管理
+- `js/config.js`
+  - OpenRouteService APIキー設定の管理
 
 ### 担当B：スポット・保存
 
@@ -61,32 +63,16 @@ routekeeper/
 - `js/spots.js`
   - スポット登録操作
   - 保存済みスポットの一覧、選択、削除
+- `js/buildings.js`
+  - 建物グループ、入口・出口ペア、建物内通過時間の登録と表示
 
 `index.html`、`css/style.css`、`js/state.js`、`js/app.js`、`README.md`は共同ファイルです。変更前に相手へ伝えてください。
 
 ## APIキーの設定方法
 
-徒歩ルート検索では、今後OpenRouteServiceのAPIキーを使用します。現時点ではルート検索が未実装なので、APIキーを設定しても検索はできません。
+徒歩ルート検索ではOpenRouteServiceのAPIキーを使用します。アプリ画面からは入力せず、`js/config.js` に設定します。
 
-APIキーは以下のいずれかの方法で設定できます。
-
-### 方法1：アプリ画面の設定パネルから設定（推奨）
-アプリ画面の左下にある「設定」パネルの「OpenRouteService APIキー」入力欄に直接APIキーを入力します。
-入力されたキーはブラウザのLocalStorageに安全に保存され、ページをリロードしても保持されます。この方法を使えば、コードや設定ファイルを編集することなくルート検索機能を利用できます。
-
-### 方法2：設定ファイル (`js/config.js`) を作成して設定
-1. `js/config.example.js` を同じフォルダへコピーします。
-2. コピーしたファイル名を `js/config.js` に変更します。
-3. `js/config.js` の `YOUR_API_KEY` を自分のAPIキーへ置き換えます。
-4. ルート検索機能を実装するとき、`index.html` の設定ファイル読み込みを `config.example.js` から `config.js` へ変更します。
-
-PowerShellでは、次を実行してコピーできます。
-
-```powershell
-Copy-Item .\js\config.example.js .\js\config.js
-```
-
-作成後の `config.js` は、次の形になります。
+`js/config.js` の `REPLACE_ORS_API_KEY` を、自分のAPIキーへ置き換えてください。
 
 ```javascript
 window.ROUTEKEEPER_CONFIG = {
@@ -94,7 +80,7 @@ window.ROUTEKEEPER_CONFIG = {
 };
 ```
 
-`js/config.js` は `.gitignore` に登録済みです。本物のAPIキーをGitHubへ公開しないでください。`config.example.js` にも本物のAPIキーを書かないでください。
+本物のAPIキーを設定した `js/config.js` をGitHubへコミットしないでください。公開環境では、デプロイサービスの環境変数やバックエンド経由でキーを扱う構成を使用してください。
 
 ## ローカルでの確認方法
 
@@ -109,38 +95,43 @@ window.ROUTEKEEPER_CONFIG = {
 例として、Pythonがインストールされている場合は次のように起動できます。
 
 ```powershell
-python -m http.server 8000
+python -m http.server 8000 --bind 127.0.0.1
 ```
 
-その後、ブラウザで `http://localhost:8000` を開きます。現在地取得を使う場合は、ブラウザに位置情報の利用許可を求められます。
+その後、ブラウザで `http://127.0.0.1:8000` を開きます。現在地取得を使う場合は、ブラウザに位置情報の利用許可を求められます。
 
 ## JavaScriptの読み込み順
 
 `index.html` では次の順番で読み込みます。
 
 1. Leaflet
-2. `js/config.example.js`
+2. `js/config.js`
 3. `js/state.js`
 4. `js/map.js`
 5. `js/routing.js`
 6. `js/storage.js`
 7. `js/spots.js`
-8. `js/app.js`
+8. `js/buildings.js`
+9. `js/app.js`
 
 設定と共通状態を先に用意し、担当別モジュールを読み込んだ後、最後に `app.js` で初期化するための順番です。
 
-## 現在の未実装機能
+## 建物内の通り抜け登録
 
-- Leaflet地図の初期化とOpenStreetMap表示
-- 現在地取得と現在地マーカー
-- OpenRouteServiceを使った徒歩ルート検索
-- ルート線、距離、所要時間の表示
-- 地図クリック処理
-- 入口、経由地、出口の登録
-- LocalStorageへの保存と読み込み
-- 保存済みスポット一覧の表示、選択、削除
+1. 地図上に入口タイプと出口タイプのスポットを登録します。
+2. 「建物内の通り抜け登録」で建物名、入口、出口、建物内の徒歩時間を設定します。
+3. 目的地への経路検索時、通常ルートとすべての登録ペアを比較します。
+4. 建物経由が速い場合、屋外区間を青い実線、建物内の入口から出口を紫の点線で表示します。
 
-各機能は担当別の小さなチケットに分け、段階的に実装してください。
+スポットと建物グループはブラウザのLocalStorageへ保存されます。
+
+## 目的地と経由地の操作
+
+- 地図上の任意地点をクリックし、表示された「ここを目的地にする」から、スポット保存せずに経路検索できます。
+- 保存済みの経由地タイプのピンでは、目的地への経路表示後に「この地点を経由地に追加」を選べます。
+- 経由地は選択順に複数追加でき、現在地から各経由地を通って目的地へ向かうよう経路を再計算します。
+- 各区間で通常ルートと建物経由ルートを比較します。
+- ルート情報欄の「経路表示を終了」で、経路線・目的地・選択済み経由地を解除できます。
 
 ---
 
