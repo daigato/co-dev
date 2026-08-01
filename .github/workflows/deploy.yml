@@ -16,8 +16,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Inject API Key
+        env:
+          ORS_API_KEY: ${{ secrets.ORS_API_KEY }}
         run: |
-          sed -i "s/REPLACE_ORS_API_KEY/${{ secrets.ORS_API_KEY }}/g" js/config.js
+          node -e '
+            const fs = require("fs");
+            const file = "js/config.js";
+            let content = fs.readFileSync(file, "utf8");
+            content = content.replace("REPLACE_ORS_API_KEY", process.env.ORS_API_KEY || "");
+            fs.writeFileSync(file, content);
+          '
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
