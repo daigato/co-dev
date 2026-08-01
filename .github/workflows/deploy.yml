@@ -21,10 +21,16 @@ jobs:
         run: |
           node -e '
             const fs = require("fs");
+            const key = process.env.ORS_API_KEY ? process.env.ORS_API_KEY.trim() : "";
+            if (!key) {
+              console.error("❌ ERROR: secrets.ORS_API_KEY is empty or not found in GitHub Secrets!");
+              process.exit(1);
+            }
             const file = "js/config.js";
             let content = fs.readFileSync(file, "utf8");
-            content = content.replace("REPLACE_ORS_API_KEY", process.env.ORS_API_KEY || "");
+            content = content.replace("REPLACE_ORS_API_KEY", key);
             fs.writeFileSync(file, content);
+            console.log("✅ Successfully injected ORS_API_KEY into js/config.js (length: " + key.length + ")");
           '
 
       - name: Setup Node.js
