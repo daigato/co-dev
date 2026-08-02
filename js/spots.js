@@ -5,9 +5,8 @@ RouteKeeper.spots = RouteKeeper.spots || {};
 
 // タイプ値と日本語ラベルのマップ
 const TYPE_LABELS = {
-  entry: "入口",
-  way: "経由地",
-  exit: "出口"
+  access: "出入口",
+  way: "経由地"
 };
 
 /**
@@ -83,7 +82,7 @@ RouteKeeper.spots.renderSpotList = function (spots) {
     typeBadge.style.color = "#ffffff";
     
     // タイプ別のバッジカラー
-    if (spot.type === "entry") {
+    if (spot.type === "access") {
       typeBadge.style.background = "#2e6f40"; // 緑系
     } else if (spot.type === "way") {
       typeBadge.style.background = "#e08b1b"; // オレンジ系
@@ -204,7 +203,7 @@ RouteKeeper.spots.cancelRegistration = function () {
     nameInput.value = "";
   }
   if (typeSelect) {
-    typeSelect.value = "entry";
+    typeSelect.value = "access";
   }
   if (saveBtn) {
     saveBtn.disabled = true;
@@ -268,7 +267,7 @@ RouteKeeper.spots.saveDraftSpot = function () {
     return;
   }
 
-  const type = typeSelect ? typeSelect.value : "entry";
+  const type = typeSelect ? typeSelect.value : "access";
   const newSpot = {
     id: "spot_" + Date.now(),
     name: name,

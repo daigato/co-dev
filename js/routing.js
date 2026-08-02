@@ -141,14 +141,20 @@ RouteKeeper.routing = (function () {
         var exit = spotsById[pair.exitSpotId];
         var durationMinutes = Number(pair.durationMinutes);
         if (
-          entry && entry.type === "entry" &&
-          exit && exit.type === "exit" &&
+          entry && entry.type === "access" &&
+          exit && exit.type === "access" &&
           Number.isFinite(durationMinutes) && durationMinutes > 0
         ) {
           candidates.push({
             groupName: group.name,
             entry: normalizeLatLng(entry),
             exit: normalizeLatLng(exit),
+            durationSeconds: durationMinutes * 60
+          });
+          candidates.push({
+            groupName: group.name,
+            entry: normalizeLatLng(exit),
+            exit: normalizeLatLng(entry),
             durationSeconds: durationMinutes * 60
           });
         }

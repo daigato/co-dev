@@ -18,9 +18,8 @@ RouteKeeper.map = (function () {
   var DEFAULT_ZOOM = 6;
 
   var TYPE_LABELS = {
-    entry: "入口",
-    way: "経由地",
-    exit: "出口"
+    access: "出入口",
+    way: "経由地"
   };
 
   /**
@@ -148,8 +147,8 @@ RouteKeeper.map = (function () {
   }
 
   function createCustomIcon(type, isDraft) {
-    var iconClass = "spot-pin-" + (isDraft ? "draft" : (type || "entry"));
-    var symbol = isDraft ? "★" : (type === "entry" ? "入" : type === "exit" ? "出" : "経");
+    var iconClass = "spot-pin-" + (isDraft ? "draft" : (type || "access"));
+    var symbol = isDraft ? "★" : (type === "access" ? "口" : "経");
 
     return L.divIcon({
       className: "custom-spot-marker-container",
@@ -191,7 +190,7 @@ RouteKeeper.map = (function () {
       popupContent.innerHTML = 
         '<div class="spot-popup-header">' +
           '<strong class="spot-popup-title">' + escapeHtml(spot.name) + '</strong>' +
-          '<span class="spot-type-badge ' + escapeHtml(spot.type) + '" style="font-size:0.7rem; padding:2px 6px; border-radius:4px; color:#fff; background:' + (spot.type==='entry'?'#2e6f40':spot.type==='way'?'#e08b1b':'#bd3a28') + ';">' + escapeHtml(typeLabel) + '</span>' +
+          '<span class="spot-type-badge ' + escapeHtml(spot.type) + '" style="font-size:0.7rem; padding:2px 6px; border-radius:4px; color:#fff; background:' + (spot.type==='access'?'#2e6f40':'#e08b1b') + ';">' + escapeHtml(typeLabel) + '</span>' +
         '</div>' +
         '<div class="spot-popup-actions">' +
           '<button type="button" class="spot-popup-btn spot-popup-btn-route">ここを目的地にする</button>' +

@@ -17,7 +17,21 @@ RouteKeeper.storage.loadSpots = function () {
       return [];
     }
     const spots = JSON.parse(data);
-    return Array.isArray(spots) ? spots : [];
+    if (!Array.isArray(spots)) {
+      return [];
+    }
+    var migrated = false;
+    var normalizedSpots = spots.map(function (spot) {
+      if (spot && (spot.type === "entry" || spot.type === "exit")) {
+        migrated = true;
+        return Object.assign({}, spot, { type: "access" });
+      }
+      return spot;
+    });
+    if (migrated) {
+      RouteKeeper.storage.saveSpots(normalizedSpots);
+    }
+    return normalizedSpots;
   } catch (error) {
     console.error("LocalStorageからのスポット読み込みに失敗しました:", error);
     return [];

@@ -48,13 +48,13 @@ RouteKeeper.buildings = (function () {
 
     fillSpotSelect(
       getElement("building-entry"),
-      spots.filter(function (spot) { return spot.type === "entry"; }),
-      "入口を選択"
+      spots.filter(function (spot) { return spot.type === "access"; }),
+      "出入口 Aを選択"
     );
     fillSpotSelect(
       getElement("building-exit"),
-      spots.filter(function (spot) { return spot.type === "exit"; }),
-      "出口を選択"
+      spots.filter(function (spot) { return spot.type === "access"; }),
+      "出入口 Bを選択"
     );
 
     var nameOptions = getElement("building-name-options");
@@ -78,7 +78,7 @@ RouteKeeper.buildings = (function () {
     if (groups.length === 0) {
       var placeholder = document.createElement("p");
       placeholder.className = "placeholder-text building-placeholder";
-      placeholder.textContent = "建物の入口・出口ペアはまだありません。";
+      placeholder.textContent = "建物の出入口ペアはまだありません。";
       container.appendChild(placeholder);
       return;
     }
@@ -102,7 +102,7 @@ RouteKeeper.buildings = (function () {
         row.className = "building-pair-row";
 
         var description = document.createElement("span");
-        description.textContent = entry.name + " → " + exit.name + "（" + pair.durationMinutes + "分）";
+        description.textContent = entry.name + " ⇄ " + exit.name + "（" + pair.durationMinutes + "分）";
 
         var deleteButton = document.createElement("button");
         deleteButton.type = "button";
@@ -140,12 +140,16 @@ RouteKeeper.buildings = (function () {
       if (nameInput) nameInput.focus();
       return;
     }
-    if (!entrySpot || entrySpot.type !== "entry") {
-      setStatus("建物の入口を選択してください。", "warning");
+    if (!entrySpot || entrySpot.type !== "access") {
+      setStatus("建物の出入口 Aを選択してください。", "warning");
       return;
     }
-    if (!exitSpot || exitSpot.type !== "exit") {
-      setStatus("建物の出口を選択してください。", "warning");
+    if (!exitSpot || exitSpot.type !== "access") {
+      setStatus("建物の出入口 Bを選択してください。", "warning");
+      return;
+    }
+    if (entrySpotId === exitSpotId) {
+      setStatus("異なる2か所の出入口を選択してください。", "warning");
       return;
     }
     if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
@@ -170,7 +174,8 @@ RouteKeeper.buildings = (function () {
     }
 
     var existingPair = group.pairs.find(function (pair) {
-      return pair.entrySpotId === entrySpotId && pair.exitSpotId === exitSpotId;
+      return (pair.entrySpotId === entrySpotId && pair.exitSpotId === exitSpotId) ||
+        (pair.entrySpotId === exitSpotId && pair.exitSpotId === entrySpotId);
     });
     if (existingPair) {
       existingPair.durationMinutes = durationMinutes;
@@ -190,7 +195,7 @@ RouteKeeper.buildings = (function () {
     if (durationInput) durationInput.value = "";
     render();
     document.dispatchEvent(new CustomEvent("buildingGroupsUpdated"));
-    setStatus("建物「" + group.name + "」の入口・出口ペアを保存しました。", "success");
+    setStatus("建物「" + group.name + "」の出入口ペアを保存しました。", "success");
   }
 
   function deletePair(groupId, pairId) {
@@ -212,7 +217,7 @@ RouteKeeper.buildings = (function () {
     RouteKeeper.state.buildingGroups = updatedGroups;
     render();
     document.dispatchEvent(new CustomEvent("buildingGroupsUpdated"));
-    setStatus("建物の入口・出口ペアを削除しました。", "success");
+    setStatus("建物の出入口ペアを削除しました。", "success");
   }
 
   document.addEventListener("DOMContentLoaded", function () {

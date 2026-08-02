@@ -44,9 +44,8 @@
             id="spot-type"
             name="spot-type"
           >
-            <option value="entry">入口 (Entry)</option>
+            <option value="access">出入口 (Access)</option>
             <option value="way">経由地 (Way)</option>
-            <option value="exit">出口 (Exit)</option>
           </select>
 
           <div
@@ -71,7 +70,7 @@
 
         <section class="panel building-panel" aria-labelledby="building-heading">
           <h2 id="building-heading">建物内の通り抜け登録</h2>
-          <p class="form-help">入口・出口を先にスポット登録し、同じ建物のペアと通過時間を設定します。</p>
+          <p class="form-help">2か所の出入口を先にスポット登録し、同じ建物のペアと通過時間を設定します。</p>
 
           <label for="building-name">建物名</label>
           <input
@@ -84,10 +83,10 @@
           >
           <datalist id="building-name-options"></datalist>
 
-          <label for="building-entry">入口</label>
+          <label for="building-entry">出入口 A</label>
           <select id="building-entry" name="building-entry"></select>
 
-          <label for="building-exit">出口</label>
+          <label for="building-exit">出入口 B</label>
           <select id="building-exit" name="building-exit"></select>
 
           <label for="building-duration">建物内の徒歩時間（分）</label>

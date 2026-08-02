@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-test("建物経由が速い場合は登録時間を含めて選択し、建物内を点線で描画する", async function () {
+test("出入口ペアを両方向で比較し、速い向きの建物内経路を点線で描画する", async function () {
   const elements = {
     "route-distance": { textContent: "" },
     "route-duration": { textContent: "" },
@@ -28,8 +28,8 @@ test("建物経由が速い場合は登録時間を含めて選択し、建物�
     storage: {
       loadSpots: function () {
         return [
-          { id: "entry_1", name: "入口A", type: "entry", lat: 1, lng: 1 },
-          { id: "exit_1", name: "出口A", type: "exit", lat: 2, lng: 2 }
+          { id: "access_1", name: "出入口A", type: "access", lat: 1, lng: 1 },
+          { id: "access_2", name: "出入口B", type: "access", lat: 2, lng: 2 }
         ];
       },
       loadBuildingGroups: function () {
@@ -38,8 +38,8 @@ test("建物経由が速い場合は登録時間を含めて選択し、建物�
           name: "近道ビル",
           pairs: [{
             id: "pair_1",
-            entrySpotId: "entry_1",
-            exitSpotId: "exit_1",
+            entrySpotId: "access_1",
+            exitSpotId: "access_2",
             durationMinutes: 2
           }]
         }];
@@ -74,7 +74,7 @@ test("建物経由が速い場合は登録時間を含めて選択し、建物�
     const end = coordinates[1].join(",");
     let duration = 1200;
     let distance = 2000;
-    if ((start === "0,0" && end === "1,1") || (start === "2,2" && end === "10,10")) {
+    if ((start === "0,0" && end === "2,2") || (start === "1,1" && end === "10,10")) {
       duration = 300;
       distance = 500;
     }
@@ -99,5 +99,6 @@ test("建物経由が速い場合は登録時間を含めて選択し、建物�
   assert.equal(elements["route-mode"].textContent, "近道ビル経由");
   assert.equal(drawnPolylines.length, 1);
   assert.equal(drawnPolylines[0].options.dashArray, "10 10");
+  assert.deepEqual(drawnPolylines[0].points, [[2, 2], [1, 1]]);
   assert.match(statusMessages.at(-1).message, /近道ビル/);
 });

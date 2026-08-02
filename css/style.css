@@ -407,16 +407,12 @@ button:disabled {
   display: block;
 }
 
-.spot-pin-entry {
-  background-color: #2e6f40; /* 入口: 緑 */
+.spot-pin-access {
+  background-color: #2e6f40; /* 出入口: 緑 */
 }
 
 .spot-pin-way {
   background-color: #e08b1b; /* 経由地: オレンジ */
-}
-
-.spot-pin-exit {
-  background-color: #bd3a28; /* 出口: 赤 */
 }
 
 .spot-pin-draft {
