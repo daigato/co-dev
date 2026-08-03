@@ -4,6 +4,7 @@ window.RouteKeeper = window.RouteKeeper || {};
 RouteKeeper.storage = RouteKeeper.storage || {};
 
 const STORAGE_KEY = "routekeeper.spots.v1";
+const BUILDING_GROUPS_STORAGE_KEY = "routekeeper.building-groups.v1";
 
 /**
  * LocalStorageからスポット配列を取得します。
@@ -16,7 +17,21 @@ RouteKeeper.storage.loadSpots = function () {
       return [];
     }
     const spots = JSON.parse(data);
-    return Array.isArray(spots) ? spots : [];
+    if (!Array.isArray(spots)) {
+      return [];
+    }
+    var migrated = false;
+    var normalizedSpots = spots.map(function (spot) {
+      if (spot && (spot.type === "entry" || spot.type === "exit")) {
+        migrated = true;
+        return Object.assign({}, spot, { type: "access" });
+      }
+      return spot;
+    });
+    if (migrated) {
+      RouteKeeper.storage.saveSpots(normalizedSpots);
+    }
+    return normalizedSpots;
   } catch (error) {
     console.error("LocalStorageからのスポット読み込みに失敗しました:", error);
     return [];
@@ -68,30 +83,48 @@ RouteKeeper.storage.deleteSpot = function (id) {
   RouteKeeper.storage.saveSpots(filteredSpots);
 };
 
-const API_KEY_STORAGE_KEY = "routekeeper.config.api_key";
-
-/**
- * LocalStorageからAPIキーを取得します。
- * @returns {string} 保存されているAPIキー。存在しない場合は空文字列。
- */
-RouteKeeper.storage.loadApiKey = function () {
+RouteKeeper.storage.loadBuildingGroups = function () {
   try {
-    return localStorage.getItem(API_KEY_STORAGE_KEY) || "";
+    const data = localStorage.getItem(BUILDING_GROUPS_STORAGE_KEY);
+    if (!data) {
+      return [];
+    }
+    const groups = JSON.parse(data);
+    return Array.isArray(groups) ? groups : [];
   } catch (error) {
-    console.error("LocalStorageからのAPIキー読み込みに失敗しました:", error);
-    return "";
+    console.error("建物グループの読み込みに失敗しました:", error);
+    return [];
   }
 };
 
-/**
- * APIキーをLocalStorageに保存します。
- * @param {string} apiKey - 保存するAPIキー
- */
-RouteKeeper.storage.saveApiKey = function (apiKey) {
+RouteKeeper.storage.saveBuildingGroups = function (groups) {
   try {
-    localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+    localStorage.setItem(BUILDING_GROUPS_STORAGE_KEY, JSON.stringify(groups));
   } catch (error) {
-    console.error("LocalStorageへのAPIキー保存に失敗しました:", error);
+    console.error("建物グループの保存に失敗しました:", error);
   }
+};
+
+RouteKeeper.storage.clearBuildingGroups = function () {
+  try {
+    localStorage.removeItem(BUILDING_GROUPS_STORAGE_KEY);
+  } catch (error) {
+    console.error("建物グループの消去に失敗しました:", error);
+  }
+};
+
+RouteKeeper.storage.removeSpotFromBuildingGroups = function (spotId) {
+  const groups = RouteKeeper.storage.loadBuildingGroups();
+  const updatedGroups = groups.map(function (group) {
+    return Object.assign({}, group, {
+      pairs: (Array.isArray(group.pairs) ? group.pairs : []).filter(function (pair) {
+        return pair.entrySpotId !== spotId && pair.exitSpotId !== spotId;
+      })
+    });
+  }).filter(function (group) {
+    return group.pairs.length > 0;
+  });
+  RouteKeeper.storage.saveBuildingGroups(updatedGroups);
+  return updatedGroups;
 };
 

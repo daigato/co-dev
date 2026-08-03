@@ -6,5 +6,6 @@ RouteKeeper.state = {
   currentPosition: null,
   selectedSpotId: null,
   draftSpot: null,
-  spots: []
+  spots: [],
+  buildingGroups: []
 };

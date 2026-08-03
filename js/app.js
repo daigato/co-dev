@@ -21,4 +21,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
   callIfAvailable("map", "initMap");
   callIfAvailable("spots", "renderSpotList");
+  callIfAvailable("buildings", "render");
 });

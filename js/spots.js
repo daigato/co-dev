@@ -5,9 +5,8 @@ RouteKeeper.spots = RouteKeeper.spots || {};
 
 // タイプ値と日本語ラベルのマップ
 const TYPE_LABELS = {
-  entry: "入口",
-  way: "経由地",
-  exit: "出口"
+  access: "出入口",
+  way: "経由地"
 };
 
 /**
@@ -83,7 +82,7 @@ RouteKeeper.spots.renderSpotList = function (spots) {
     typeBadge.style.color = "#ffffff";
     
     // タイプ別のバッジカラー
-    if (spot.type === "entry") {
+    if (spot.type === "access") {
       typeBadge.style.background = "#2e6f40"; // 緑系
     } else if (spot.type === "way") {
       typeBadge.style.background = "#e08b1b"; // オレンジ系
@@ -153,6 +152,7 @@ RouteKeeper.spots.selectSpot = function (id) {
  */
 RouteKeeper.spots.deleteSpot = function (id) {
   RouteKeeper.storage.deleteSpot(id);
+  RouteKeeper.storage.removeSpotFromBuildingGroups(id);
   
   if (RouteKeeper.state.selectedSpotId === id) {
     RouteKeeper.state.selectedSpotId = null;
@@ -164,6 +164,7 @@ RouteKeeper.spots.deleteSpot = function (id) {
 
   // マーカー削除等のため、地図担当へ通知するカスタムイベントを発行
   document.dispatchEvent(new CustomEvent("spotsUpdated"));
+  document.dispatchEvent(new CustomEvent("buildingGroupsUpdated"));
 
   if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
     RouteKeeper.map.setStatus("スポットを削除しました。", "success");
@@ -202,7 +203,7 @@ RouteKeeper.spots.cancelRegistration = function () {
     nameInput.value = "";
   }
   if (typeSelect) {
-    typeSelect.value = "entry";
+    typeSelect.value = "access";
   }
   if (saveBtn) {
     saveBtn.disabled = true;
@@ -266,7 +267,7 @@ RouteKeeper.spots.saveDraftSpot = function () {
     return;
   }
 
-  const type = typeSelect ? typeSelect.value : "entry";
+  const type = typeSelect ? typeSelect.value : "access";
   const newSpot = {
     id: "spot_" + Date.now(),
     name: name,
@@ -297,7 +298,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const cancelBtn = document.getElementById("spot-cancel-button");
   const saveBtn = document.getElementById("spot-save-button");
   const nameInput = document.getElementById("spot-name");
-  const apiKeyInput = document.getElementById("api-key");
 
   if (cancelBtn) {
     cancelBtn.addEventListener("click", function () {
@@ -310,10 +310,12 @@ document.addEventListener("DOMContentLoaded", function () {
   if (clearAllBtn) {
     clearAllBtn.addEventListener("click", function () {
       RouteKeeper.storage.clearSpots();
+      RouteKeeper.storage.clearBuildingGroups();
       RouteKeeper.state.selectedSpotId = null;
       RouteKeeper.state.spots = [];
       RouteKeeper.spots.renderSpotList([]);
       document.dispatchEvent(new CustomEvent("spotsUpdated"));
+      document.dispatchEvent(new CustomEvent("buildingGroupsUpdated"));
       if (RouteKeeper.map && typeof RouteKeeper.map.setStatus === "function") {
         RouteKeeper.map.setStatus("すべてのスポットを削除しました。", "success");
       }
@@ -340,39 +342,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // APIキーの初期ロードとイベント登録
-  if (apiKeyInput) {
-    const savedKey = RouteKeeper.storage.loadApiKey();
-    // 保存されたキーがあればそれを表示、なければ ****** を初期表示
-    apiKeyInput.value = savedKey ? savedKey : "******";
-
-    // 実際に利用する有効なAPIキーを判定する関数を定義
-    RouteKeeper.getEffectiveApiKey = function () {
-      const currentVal = apiKeyInput.value.trim();
-      if (currentVal && currentVal !== "******") {
-        return currentVal;
-      }
-      const saved = RouteKeeper.storage.loadApiKey();
-      if (saved && saved !== "******") {
-        return saved;
-      }
-      return (window.ROUTEKEEPER_CONFIG && window.ROUTEKEEPER_CONFIG.ORS_API_KEY) || "";
-    };
-
-    apiKeyInput.addEventListener("input", function () {
-      const key = apiKeyInput.value.trim();
-      if (key !== "******") {
-        RouteKeeper.storage.saveApiKey(key);
-      }
-    });
-
-    apiKeyInput.addEventListener("focus", function () {
-      if (apiKeyInput.value === "******") {
-        // フォーカス時に伏字の場合、一時的にクリアして入力しやすくする
-        // apiKeyInput.value = "";
-      }
-    });
-  }
 });
 
 
