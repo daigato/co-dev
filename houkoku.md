@@ -105,3 +105,15 @@ A担当部分を実装しました。
 3. **旧データ移行と動作確認**
    - LocalStorageに保存済みの旧「入口」「出口」スポットを、読み込み時に「出入口」へ自動移行。
    - Node標準テスト5件、全JavaScript構文チェック、ローカルHTTP配信と登録UIのHTML構造を確認。 -> 動作確認OK
+
+🌱8.2
+
+### 実装・修正内容
+1. **GitHub Secrets 連携による安全な API キー注入**
+   - GitHub Secrets（`ORS_API_KEY`）を GitHub Actions の CI/CD 上で安全に `js/config.js` へ自動注入するワークフロー (`.github/workflows/deploy.yml`) を構築。
+   - APIキーに含まれる特殊文字や引用符による JavaScript の構文エラー (`SyntaxError`) を防ぐため、`JSON.stringify` による動的エスケープ置換処理を実装。 -> 対応完了
+2. **Cloudflare Workers (Workers Assets) 自動デプロイ環境の確立**
+   - Cloudflare Workers 向けデプロイ構成 (`wrangler.json`) に合わせ、`npx wrangler deploy` による自動デプロイを設定。
+   - `.cloudflareignore` を作成し、`.git` や `.github` などの不要な内部管理用ファイルをアセット配信対象から除外。 -> 動作確認OK
+3. **スクリプト読み込みエラーの修正**
+   - `index.html` 内に残っていた未定義スクリプト `js/config.example.js` のタグを削除し、`js/config.js` (`window.ROUTEKEEPER_CONFIG`) が遮断されず正常に実行されるよう修整。 -> 修正完了
